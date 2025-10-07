@@ -1,0 +1,107 @@
+#!/bin/bash
+
+contactos="contacto.txt"
+
+# Función para mostrar el menú
+mostrar_menu() {
+    echo "----------------------------------"
+    echo "         Agenda Telefónica        "
+    echo "----------------------------------"
+    echo "1. Agregar contacto"
+    echo "2. Consultar contacto"
+    echo "3. Borrar contacto"
+    echo "4. Listar contactos"
+    echo "5. Ordenar por nombre"
+    echo "6. Ordenar por teléfono"
+    echo "7. Generar reporte"
+    echo "0. Salir"
+    echo "----------------------------------"
+    echo -n "Selecciona una opción: "
+}
+
+# Función para agregar un contacto
+agregar_contacto() {
+    echo -n "Ingrese el nombre del contacto: "
+    read nombre
+    echo -n "Ingrese el teléfono del contacto: "
+    read teléfono
+
+    if [ ! -f "$contactos" ]; then
+        touch "$contactos"
+        echo "Se ha creado el archivo $contactos"
+    fi
+        echo "El contacto ya existe."
+    else
+
+    if grep -q "^$nombre:" "$contactos"; then
+        echo "$nombre:$telefono" >> "$contactos"
+        echo "Contacto agregado con éxito."
+    fi
+}
+
+# Función para consultar un contacto
+consultar_contacto() {
+    echo -n "Ingrese el nombre del contacto: "
+    read nombre
+    telefono=$(grep "^$nombre:" "$contactos" | cut -d ':' -f2)
+    if [ -z "$telefono" ]; then
+        echo "Contacto no encontrado."
+    else
+        echo "El teléfono de $nombre es: $telefono"
+    fi
+}
+
+# Función para borrar un contacto
+borrar_contacto() {
+    echo -n "Ingrese el nombre del contacto a borrar: "
+    read nombre
+    sed -i "/^$nombre:/d" "$contactos"
+    echo "Contacto borrado, si existía."
+}
+
+# Función para listar los contactos
+listar_contactos() {
+    echo "Lista de contactos:"
+    echo "╔═══════════════╦══════════════╗"
+    echo "║ Nombre        ║ Teléfono     ║"
+    echo "╠═══════════════╬══════════════╣"
+    awk -F: '{printf "║ %-13s ║ %-12s ║\n", $1, $2}' "$contactos" | sort
+    echo "╚═══════════════╩══════════════╝"
+}
+
+# Función para ordenar por nombre
+ordenar_por_nombre() {
+    sort -t ':' -k1,1 "$contactos"
+}
+
+# Función para ordenar por teléfono
+ordenar_por_telefono() {
+    sort -t ':' -k2,2 "$contactos"
+}
+
+# Función para generar reporte
+generar_reporte() {
+    echo "╔═══════════════╦══════════════╗" > reporte.txt
+    echo "║ Nombre        ║ Teléfono     ║" >> reporte.txt
+    echo "╠═══════════════╬══════════════╣" >> reporte.txt
+    awk -F: '{printf "║ %-13s ║ %-12s ║\n", $1, $2}' "$contactos" | sort >> reporte.txt
+    echo "╚═══════════════╩══════════════╝" >> reporte.txt
+    echo "Reporte generado en 'reporte.txt'"
+}
+
+# Bucle principal
+while true; do
+    mostrar_menu
+    read opcion
+    case $opcion in
+        1) agregar_contacto ;;
+        2) consultar_contacto ;;
+        3) borrar_contacto ;;
+        4) listar_contactos ;;
+        5) ordenar_por_nombre ;;
+        6) ordenar_por_telefono ;;
+        7) generar_reporte ;;
+        0) echo "Saliendo..."; exit 0 ;;
+        *) echo "Opción no válida, intenta de nuevo." ;;
+    esac
+done
